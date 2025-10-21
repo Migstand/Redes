@@ -1,80 +1,91 @@
 class IPAdress:
     def __init__(self, ipvq, mascara):
-        self.ipvq = ipvq
-        self.mascara = mascara
+        self.__ipvq = self.set_ipvq(ipvq)
+        self.__mascara = self.set_mascara(mascara)
+        self.__barra = self.numero_da_masca()
     def set_ipvq(self, ipvq):
-        a, b, c, d = int(ipvq.split("."))
+        a, b, c, d = map(int,ipvq.split("."))
         if (a < 0 or a >255) or (b < 0 or b >255) or (c < 0 or c >255) or (d < 0 or d >255):
             raise ValueError("Informe um ip válido!")
-        else: self.ipv4 = ipv4
-        self.ipv4 = ipv4
+        else: self.ipvq = ipvq
 
     def set_mascara(self, mascara):
         mascaras_possiveis = [255,254, 252, 248, 240, 224, 192, 128, 0]
-        e, f, g, h, = int(mascara.split("."))
+        e, f, g, h, = map(int,mascara.split("."))
         if (e in mascaras_possiveis) and (f in mascaras_possiveis) and (g in mascaras_possiveis) and (h in mascaras_possiveis):
-            self.mascara = mascara
-        else: raise ValueError("Informe uma máscara válida!")
+            if (e != 255) and (f != 0 or g != 0 or h != 0):
+                raise ValueError("Informe uma máscara válida!")
+            elif (f != 255) and (g != 0 or h != 0):
+                raise ValueError("Informe uma máscara válida!")
+            elif (g != 255) and (h != 0):
+                raise ValueError("Informe uma máscara válida!")
+            else:
+                self.mascara = mascara
+
         
     def get_ipvq(self):
-        return self.ipvq
+        return self.__ipvq
     def get_mascara(self):
-        return self.mascara
+        return self.__mascara
+    def get_bara(self):
+        return self.__barra
     
     def end_rede(self):
-        oipu, oipd, oipt, oipq = map(int, self.ipvq.split("."))
-        omu, omd, omt, omq = map(int, self.mascara.split("."))
+        oipu, oipd, oipt, oipq = map(int, self.__ipvq.split("."))
+        omu, omd, omt, omq = map(int, self.__mascara.split("."))
         rede = f"{str(oipu & omu)}.{str(oipd & omd)}.{str(oipt & omt)}.{str(oipq & omq)}"
         return rede
     def end_broadcast(self):
-        oipu, oipd, oipt, oipq = map(int, self.ipvq.split("."))
-        omu, omd, omt, omq = map(int, self.mascara.split("."))
-        omu = ~(omu)
-        omd = ~(omd)
-        omt = ~(omt)
-        omq = ~(omq)
+        oipu, oipd, oipt, oipq = map(int, self.__ipvq.split("."))
+        omu, omd, omt, omq = map(int, self.__mascara.split("."))
+        omu = omu ^ 255
+        omd = omd ^ 255
+        omt = omt ^ 255
+        omq = omq ^ 255
         broadcast = f"{str(oipu | omu)}.{str(oipd | omd)}.{str(oipt | omt)}.{str(oipq | omq)}"
         return broadcast
+    def numero_da_masca(self):
+        omu, omd, omt, omq = map(int,self.__mascara.split("."))
+        m = 0
+        for i in range(8):
+            m = m + (omu%2)
+        for i in range(8):
+            m = m + (omd%2)
+        for i in range(8):
+            m = m + (omt%2)
+        for i in range(8):
+            m = m + (omq%2)
+        self.__barra = m
+        return self.__barra
 
     def pertence_a_rede(self, ip):
-        ipu, ipd, ipt, ipq = ip.split(".")
-        oipu, oipd, oipt, oipq = (self.ipvq.split("."))
-        omu, omd, omt, omq = (self.mascara.split("."))
-        bip = int(ipu + ipd + ipt + ipq)
-        bipvq = int(oipu + oipd + oipt + oipq)
-        bom = int(omu + omd + omt + omq)
-        if (bip > bipvq) and (bip < bom):
-            return "Ip pertence a rede"
-        else: 
+        if self.end_rede() == ip or self.end_broadcast() == ip:
             return "Ip não pertence a rede"
+        ipu, ipd, ipt, ipq = map(int,ip.split("."))
+        oipu, oipd, oipt, oipq = map(int, self.end_rede().split("."))
+        omu, omd, omt, omq = map(int, self.end_broadcast().split("."))
+        if ((ipq > oipq) and (ipq < omq)) or ((ipq == oipq and ipu == omq)):
+            if ((ipt > oipt) and (ipt < omt))or (ipt == oipt and ipt == omt):
+                if ((ipd > oipd) and (ipd < omd)) or (ipd == oipd and ipd == omd):
+                    if ((ipu > oipu) and (ipu < omu)) or (ipu == oipu and ipu == omu):
+                        return "Ip pertence a rede"
+                    else: return "Ip não pertence a rede"
+                else: return "Ip não pertence a rede"
+            else: return "Ip não pertence a rede"
+        else: return "Ip não pertence a rede"
 
     def __str__(self):
-        
-        omu, omd, omt, omq = map(int,self.mascara.split("."))
-        omu = str(bin(omu))
-        return omu
-        omd = str(bin(omd))
-        omt = str(bin(omt))
-        omq = str(bin(omq))
-        m = 0
-        # for i in range(8):
-        #     m = m + int(omu[i])
-        # for i in range(8):
-        #     m = m + int(omu[i])
-        # for i in range(8):
-        #     m = m + int(omu[i])
-        # for i in range(8):
-        #     m = m + int(omu[i])    
-        return f"{self.ipvq}/{m}"
+            
+        return f"{self.__ipvq}/{self.__barra}"
 
 class UI:
     def main():
-        ip = IPAdress("192.168.1.10", "255.255.255.0")
+        ip = IPAdress(input(), input())
 
         print(ip)
         print(ip.end_rede())                  # "192.168.1.0"
         print(ip.end_broadcast())             # "192.168.1.255"
-        print(ip.pertence_a_rede("192.168.1.55"))  # True
-        print(ip.pertence_a_rede("192.168.2.1"))   # False
+        print(ip.pertence_a_rede(input()))  # True
+        print(ip.pertence_a_rede(input()))   # False
 
 UI.main()
