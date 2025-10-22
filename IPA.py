@@ -42,24 +42,7 @@ class IPAdress:
         broadcast = f"{str(oipu | omu)}.{str(oipd | omd)}.{str(oipt | omt)}.{str(oipq | omq)}"
         return broadcast
 
-
-    def pertence_a_rede(self, ip):
-        if self.end_rede() == ip or self.end_broadcast() == ip:
-            return "Ip não pertence a rede"
-        ipu, ipd, ipt, ipq = map(int,ip.split("."))
-        oipu, oipd, oipt, oipq = map(int, self.end_rede().split("."))
-        omu, omd, omt, omq = map(int, self.end_broadcast().split("."))
-        if ((ipq >= oipq) and (ipq <= omq)):
-            if ((ipt >= oipt) and (ipt <= omt)):
-                if ((ipd >= oipd) and (ipd <= omd)):
-                    if ((ipu >= oipu) and (ipu <= omu)):
-                        return "Ip pertence a rede"
-                    else: return "Ip não pertence a rede"
-                else: return "Ip não pertence a rede"
-            else: return "Ip não pertence a rede"
-        else: return "Ip não pertence a rede"
-
-    def __str__(self):
+    def numero_da_mascara(self):
         omu, omd, omt, omq = map(int,self.mascara.split("."))
         m = 0
         for i in range(8):
@@ -78,8 +61,26 @@ class IPAdress:
             c = omq
             m = m + (c%2)
             omq = omq//2
-            
-        return f"{self.ipvq}/{m}"
+        return m
+
+    def pertence_a_rede(self, ip):
+        if self.end_rede() == ip or self.end_broadcast() == ip:
+            return "Ip não pertence a rede"
+        ipu, ipd, ipt, ipq = map(int,ip.split("."))
+        oipu, oipd, oipt, oipq = map(int, self.end_rede().split("."))
+        omu, omd, omt, omq = map(int, self.end_broadcast().split("."))
+        if ((ipq >= oipq) and (ipq <= omq)):
+            if ((ipt >= oipt) and (ipt <= omt)):
+                if ((ipd >= oipd) and (ipd <= omd)):
+                    if ((ipu >= oipu) and (ipu <= omu)):
+                        return "Ip pertence a rede"
+                    else: return "Ip não pertence a rede"
+                else: return "Ip não pertence a rede"
+            else: return "Ip não pertence a rede"
+        else: return "Ip não pertence a rede"
+
+    def __str__(self):
+        return f"{self.ipvq}/{self.numero_da_mascara()}"
 
 class UI:
     def main():
