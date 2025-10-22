@@ -1,8 +1,7 @@
 class IPAdress:
     def __init__(self, ipvq, mascara):
-        self.__ipvq = self.set_ipvq(ipvq)
-        self.__mascara = self.set_mascara(mascara)
-        self.__barra = self.numero_da_masca()
+        self.set_ipvq(ipvq)
+        self.set_mascara(mascara)
     def set_ipvq(self, ipvq):
         a, b, c, d = map(int,ipvq.split("."))
         if (a < 0 or a >255) or (b < 0 or b >255) or (c < 0 or c >255) or (d < 0 or d >255):
@@ -24,39 +23,25 @@ class IPAdress:
 
         
     def get_ipvq(self):
-        return self.__ipvq
+        return self.ipvq
     def get_mascara(self):
-        return self.__mascara
-    def get_bara(self):
-        return self.__barra
+        return self.mascara
     
     def end_rede(self):
-        oipu, oipd, oipt, oipq = map(int, self.__ipvq.split("."))
-        omu, omd, omt, omq = map(int, self.__mascara.split("."))
+        oipu, oipd, oipt, oipq = map(int, self.ipvq.split("."))
+        omu, omd, omt, omq = map(int, self.mascara.split("."))
         rede = f"{str(oipu & omu)}.{str(oipd & omd)}.{str(oipt & omt)}.{str(oipq & omq)}"
         return rede
     def end_broadcast(self):
-        oipu, oipd, oipt, oipq = map(int, self.__ipvq.split("."))
-        omu, omd, omt, omq = map(int, self.__mascara.split("."))
+        oipu, oipd, oipt, oipq = map(int, self.ipvq.split("."))
+        omu, omd, omt, omq = map(int, self.mascara.split("."))
         omu = omu ^ 255
         omd = omd ^ 255
         omt = omt ^ 255
         omq = omq ^ 255
         broadcast = f"{str(oipu | omu)}.{str(oipd | omd)}.{str(oipt | omt)}.{str(oipq | omq)}"
         return broadcast
-    def numero_da_masca(self):
-        omu, omd, omt, omq = map(int,self.__mascara.split("."))
-        m = 0
-        for i in range(8):
-            m = m + (omu%2)
-        for i in range(8):
-            m = m + (omd%2)
-        for i in range(8):
-            m = m + (omt%2)
-        for i in range(8):
-            m = m + (omq%2)
-        self.__barra = m
-        return self.__barra
+
 
     def pertence_a_rede(self, ip):
         if self.end_rede() == ip or self.end_broadcast() == ip:
@@ -64,10 +49,10 @@ class IPAdress:
         ipu, ipd, ipt, ipq = map(int,ip.split("."))
         oipu, oipd, oipt, oipq = map(int, self.end_rede().split("."))
         omu, omd, omt, omq = map(int, self.end_broadcast().split("."))
-        if ((ipq > oipq) and (ipq < omq)) or ((ipq == oipq and ipu == omq)):
-            if ((ipt > oipt) and (ipt < omt))or (ipt == oipt and ipt == omt):
-                if ((ipd > oipd) and (ipd < omd)) or (ipd == oipd and ipd == omd):
-                    if ((ipu > oipu) and (ipu < omu)) or (ipu == oipu and ipu == omu):
+        if ((ipq >= oipq) and (ipq <= omq)):
+            if ((ipt >= oipt) and (ipt <= omt)):
+                if ((ipd >= oipd) and (ipd <= omd)):
+                    if ((ipu >= oipu) and (ipu <= omu)):
                         return "Ip pertence a rede"
                     else: return "Ip não pertence a rede"
                 else: return "Ip não pertence a rede"
@@ -75,8 +60,26 @@ class IPAdress:
         else: return "Ip não pertence a rede"
 
     def __str__(self):
+        omu, omd, omt, omq = map(int,self.mascara.split("."))
+        m = 0
+        for i in range(8):
+            c = omu
+            m = m + (c%2)
+            omu = omu// 2
+        for i in range(8):
+            c = omd
+            m = m + (c%2)
+            omd = omd//2
+        for i in range(8):
+            c = omt
+            m = m + (c%2)
+            omt = omt//2
+        for i in range(8):
+            c = omq
+            m = m + (c%2)
+            omq = omq//2
             
-        return f"{self.__ipvq}/{self.__barra}"
+        return f"{self.ipvq}/{m}"
 
 class UI:
     def main():
